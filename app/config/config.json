@@ -1,0 +1,15 @@
+{
+	"db": {
+		"username": "manjusha",
+		"password": "manjusha",
+		"host": "ds139994.mlab.com",
+		"port": "39994",
+		"name": "chat-manjusha"
+	},
+	"sessionSecret": "juhytg7676OKI",
+	"redis": {
+		"host": "redis-16115.c9.us-east-1-2.ec2.cloud.redislabs.com",
+		"port": 16115,
+		"password": ""
+	}
+}
