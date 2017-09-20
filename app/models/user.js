@@ -6,7 +6,6 @@ var create = function (data, callback){
 	var newUser = new userModel(data);
 	newUser.save(callback);
 };
-
 var findOne = function (data, callback){
 	userModel.findOne(data, callback);
 }

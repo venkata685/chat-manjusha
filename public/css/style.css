@@ -102,6 +102,20 @@ body {
   padding-left: 6px;
   font-size: 80%;
 }
+.chat .chat-history .message-data a,
+.room-list a{
+  color: #a8aab1;
+  padding-left: 6px;
+  font-size: 80%;
+}
+.room-list a{
+  padding-left:0;
+}
+.chat .chat-history .message-data .message-data-star a:hover, 
+.chat .chat-history .message-data .message-data-star.active a,
+.room-list .message-data-star.active a{
+  color: #ff9900;
+}
 .chat .chat-history .message {
   color: white;
   padding: 18px 20px;
@@ -131,12 +145,16 @@ body {
   padding: 20px;
 }
 .chat .chat-message textarea, .room .room-create input {
-  width: 100%;
+  width: 85%;
   border: none;
-  padding: 10px 20px;
+  padding: 2px;
   font: 14px/22px "Roboto", Arial, sans-serif;
   margin-bottom: 10px;
   resize: none;
+}
+.room .room-create input {
+  width:80%;
+  padding:13px;
 }
 .online, .offline, .me {
   margin-right: 3px;

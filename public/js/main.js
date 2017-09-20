@@ -31,6 +31,41 @@ var app = {
         }
       });
 
+      $("input[name='title']").on('keyup', function(e) {
+          if (e.which == 13 && ! e.shiftKey) {
+              $(".room-create button").click();
+          }
+      });
+
+    });
+  },
+  messages: function(){
+
+    var socket = io('/rooms', { transports: ['websocket'] });
+
+    // When socket connects, get a list of chatrooms
+    socket.on('connect', function () {
+      $('.room-list').on('click', '.message-data-star', function(e) {
+          e.preventDefault();
+          var message_id = $(this).data('message-id');
+          var that = $(this);
+          $.get( "/star/"+message_id, function( data ) {
+            if(data.success){
+              console.log(that)
+              that.addClass('active');
+            }
+          });
+        });
+        
+        $('.room-list').on('click', '.message-data-edit', function(e) {
+          e.preventDefault();
+          var message_id = $(this).data('message-id');
+          
+          app.helpers.editMessage(message_id);
+
+        });
+      
+
     });
   },
 
@@ -71,7 +106,31 @@ var app = {
             app.helpers.addMessage(message);
           }
         });
+        $("textarea[name='message']").on('keyup', function(e) {
+            if (e.which == 13 && ! e.shiftKey) {
+                $(".chat-message button").click();
+            }
+        });
+        
+        $('.chat-history ul').on('click', '.message-data-star', function(e) {
+          e.preventDefault();
+          var message_id = $(this).data('message-id');
+          var that = $(this);
+          $.get( "/star/"+message_id, function( data ) {
+            if(data.success){
+              console.log(that)
+              that.addClass('active');
+            }
+          });
+        });
+        
+        $('.chat-history ul').on('click', '.message-data-edit', function(e) {
+          e.preventDefault();
+          var message_id = $(this).data('message-id');
+          
+          app.helpers.editMessage(message_id);
 
+        });
         // Whenever a user leaves the current room, remove the user from users list
         socket.on('removeUser', function(userId) {
           $('li#user-' + userId).remove();
@@ -112,12 +171,11 @@ var app = {
         if(users.constructor !== Array){
           users = [users];
         }
-
         var html = '';
         for(var user of users) {
           user.username = this.encodeHTML(user.username);
           html += `<li class="clearfix" id="user-${user._id}">
-                     <img src="${user.picture}" alt="${user.username}" />
+                     <img src="${user.picture}" width="50%" alt="${user.username}" />
                      <div class="about">
                         <div class="name">${user.username}</div>
                         <div class="status"><i class="fa fa-circle online"></i> online</div>
@@ -144,16 +202,53 @@ var app = {
       var html = `<li>
                     <div class="message-data">
                       <span class="message-data-name">${message.username}</span>
-                      <span class="message-data-time">${message.date}</span>
-                    </div>
-                    <div class="message my-message" dir="auto">${message.content}</div>
+                      <span class="message-data-time">${message.date}</span>`;
+      if(message.id){                      
+      html +=   `     <span class="message-data-star" data-message-id="${message.id}"><a href="#"><i class="fa fa-star" aria-hidden="true"></i></a></span>
+                      <span class="message-data-edit" data-message-id="${message.id}"><a href="#"><i class="fa fa-edit" aria-hidden="true"></i></a></span>`;                      
+      }                      
+      html +=   `   </div>
+
+                    <div class="message my-message" dir="auto" id="msg_${message.id}">${message.content}</div>
                   </li>`;
       $(html).hide().appendTo('.chat-history ul').slideDown(200);
 
       // Keep scroll bar down
       $(".chat-history").animate({ scrollTop: $('.chat-history')[0].scrollHeight}, 1000);
     },
-
+    editMessage: function(message_id){
+      console.log(message_id);
+      swal({
+        title: 'Edit',
+        input: 'textarea',
+        inputValue: $('#msg_'+message_id).text(),
+        showCancelButton: true,
+        confirmButtonText: 'Edit',
+        showLoaderOnConfirm: true,
+        preConfirm: function(msg) {
+          return new Promise(function(resolve) {
+            $.ajax({
+               url: '/msg/'+message_id,
+               type: 'POST',           
+               data: 'msg='+msg,
+               dataType: 'json'
+            })
+            .done(function(response){
+              if(response.owner){
+               swal('Edited !');
+               $('#msg_'+message_id).text(msg)
+              }else{
+               swal('Access Denied !');
+              }
+            })
+            .fail(function(){
+               swal('Oops...', 'Something went wrong with ajax !', 'error');
+            });
+           });
+         },
+        allowOutsideClick: false
+      });
+    },
     // Update number of rooms
     // This method MUST be called after adding a new room
     updateNumOfRooms: function(){

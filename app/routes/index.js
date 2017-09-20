@@ -6,6 +6,7 @@ var passport 	= require('passport');
 
 var User = require('../models/user');
 var Room = require('../models/room');
+var Message = require('../models/message');
 
 // Home page
 router.get('/', function(req, res, next) {
@@ -66,6 +67,18 @@ router.get('/rooms', [User.isAuthenticated, function(req, res, next) {
 		res.render('rooms', { rooms });
 	});
 }]);
+// Rooms
+router.get('/messages', [User.isAuthenticated, function(req, res, next) {
+	
+	Message.find(function(err, messages){
+		if(err) throw err;
+		var starred_messages = [];
+		User.findOne({'username':req.user.username}, function(err, user){
+			starred_messages = user.starred;
+			res.render('messages', { messages, starred_messages });
+		});
+	});
+}]);
 
 // Chat Room 
 router.get('/chat/:id', [User.isAuthenticated, function(req, res, next) {
@@ -79,7 +92,31 @@ router.get('/chat/:id', [User.isAuthenticated, function(req, res, next) {
 	});
 	
 }]);
+// Chat Room 
+router.get('/star/:id', [User.isAuthenticated, function(req, res, next) {
+	var messageId = req.params.id;
+	User.findOne({'username':req.user.username}, function(err, user){
+		var added = user.starred.addToSet(messageId);		
+		user.save();
+	});
 
+	res.send({"success": true});	
+}]);
+router.post('/msg/:id', [User.isAuthenticated, function(req, res, next) {
+	var messageId = req.params.id;
+	var newMessage = req.body.msg;
+	Message.findById(messageId, function(err, message){
+		if(message.username == req.user.username){
+
+			message.content = newMessage;		
+			message.save();
+			res.send({"owner": true});
+		}else{
+			res.send({"owner": false});
+		}
+	});
+	
+}]);
 // Logout
 router.get('/logout', function(req, res, next) {
 	// remove the req.user property and clear the login session
